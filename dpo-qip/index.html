@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Fatalities</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.4/chartist.min.js"
+    integrity="sha512-9rxMbTkN9JcgG5euudGbdIbhFZ7KGyAuVomdQDI9qXfPply9BJh0iqA7E/moLCatH2JD4xBGHwV6ezBkCpnjRQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.4/chartist.min.css"
+    integrity="sha512-V0+DPzYyLzIiMiWCg3nNdY+NyIiK9bED/T1xNBj08CaIUyK3sXRpB26OUCIzujMevxY9TRJFHQIxTwgzb0jVLg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+  <div class="ct-chart ct-perfect-fourth"></div>
+</body>
+
+<script>
+  var options = {
+    seriesBarDistance: 15
+  };
+
+  var responsiveOptions = [
+    ['screen and (min-width: 641px) and (max-width: 1024px)', {
+      seriesBarDistance: 10,
+      axisX: {
+        labelInterpolationFnc: function (value) {
+          return value;
+        }
+      }
+    }],
+    ['screen and (max-width: 640px)', {
+      seriesBarDistance: 5,
+      axisX: {
+        labelInterpolationFnc: function (value) {
+          return value[0];
+        }
+      }
+    }]
+  ];
+
+
+
+  let data_holder = {}
+  let data = {
+    labels: [],
+    series: [
+      []
+    ]
+  }
+
+  fetch(
+      'https://dppa-p-apimanagement-01.azure-api.net/staging/public/data/DPPADPOSS-FATALITIES/json?filter=type_of_incident:Malicious%20Act'
+    )
+    .then(
+      function (response) {
+        if (response.status !== 200) {
+          console.log('Looks like there was a problem. Status Code: ' +
+            response.status);
+          return;
+        }
+
+        // Examine the text in the response
+        response.json().then(function (data) {
+          console.log(data);
+          for (let i = 0; i < data.length; i++) {
+
+            let mission_acronym = data[i].mission_acronym;
+            if (data_holder.hasOwnProperty(mission_acronym)) {
+              data_holder[mission_acronym] += 1
+            } else {
+              data_holder[mission_acronym] = 1
+            }
+          }
+          console.log(data_holder)
+        }).then(() => {
+
+          for (const d in data_holder) {
+            console.log(d)
+            data["labels"].push(d)
+            data["series"][0].push(data_holder[d])
+          }
+          console.log(data)
+          new Chartist.Bar('.ct-chart', data, options, responsiveOptions);
+
+        });
+      }
+    )
+    .catch(function (err) {
+      console.log('Fetch Error :-S', err);
+    });
+</script>
+
+</html>
